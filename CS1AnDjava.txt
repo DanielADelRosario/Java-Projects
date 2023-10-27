@@ -1,0 +1,273 @@
+import java.util.Scanner;
+
+// Class representing the inventory
+class Inventory {
+    private final String[] items; // Array to store item names
+    private final int[] itemQuantities; // Array to store item quantities
+    private int itemCount; // Counter for the number of items
+
+    // Constructor to initialize the inventory
+    public Inventory() {
+        items = new String[100];
+        itemQuantities = new int[100];
+        itemCount = 0;
+    }
+
+    // Method to add an item to the inventory
+    public void addItem(String itemName, int quantity) {
+        int itemIndex = findItemIndex(itemName);
+
+        // If the item does not exist, add it to the inventory
+        if (itemIndex == -1) {
+            items[itemCount] = itemName; //add the item in the array
+            itemQuantities[itemCount] = quantity; //adding the quantity of the item to the array
+            itemCount++; //increment the itemcount
+            System.out.println("\n\t" + quantity + " " + itemName + "(s) successfully added to the inventory!");
+        }
+        // If the item exists, update the quantity in the inventory
+        else if (itemIndex >= 0 && itemIndex < itemCount) { //
+            itemQuantities[itemIndex] += quantity; //add the quantity in the inventory
+            System.out.println("\n\t" + quantity + " " + itemName + "(s) successfully added to the existing inventory!");
+        }
+    }
+
+    // Method to remove an item from the inventory
+    public void removeItem(Scanner scanner) {
+        if (itemCount == 0) { //there is no items added, itemcount increment if there is an added item
+            System.out.println("\n\tCurrently, there are no items in the inventory!");
+            return;
+        }
+
+        int choice = 0;
+        boolean isValidChoice = false;
+
+        // Prompt the user to choose the removal option
+        do {
+            System.out.print("\n 1. Remove a specific item");
+            System.out.println("\t\t 2. Remove a specific item quantity");
+            System.out.print("\n\tEnter your choice: ");
+            String input = scanner.nextLine();
+
+            try {
+                choice = Integer.parseInt(input);
+                isValidChoice = choice == 1 || choice == 2; //input number condition
+
+                if (!isValidChoice) { //not 1 or 2; while loop
+                    System.out.println("\n    [ERR] Invalid choice! Please enter a valid choice (1 or 2).");
+                }
+            } catch (NumberFormatException e) { //if not integer
+                System.out.println("\n    [ERR] Invalid input! Please enter a valid choice (1 or 2).");
+            }
+        } while (!isValidChoice); //condition that requires 1 or 2 choices only
+
+        switch (choice) {
+            case 1:
+                System.out.print("\n\tEnter item name to remove: ");
+                String itemNameToRemove = scanner.nextLine();
+                removeAllQuantities(itemNameToRemove); //goto removeallquantities function
+                break;
+            case 2:
+                System.out.print("\n\tEnter item name: ");
+                String itemName = scanner.nextLine();
+
+                int quantity = 0;
+                boolean isValidQuantity = false;
+
+                // Prompt the user to enter the quantity to remove
+                do {
+                    System.out.print("\tEnter quantity to remove: ");
+                    String input = scanner.nextLine();
+
+                    try {
+                        quantity = Integer.parseInt(input); //enter integer only
+                        isValidQuantity = quantity > 0; //condition
+
+                        if (!isValidQuantity) { //less than 0 input quantity
+                            System.out.println("    [ERR] Invalid input! Quantity must be greater than 0.\n");
+                        }
+                    } catch (NumberFormatException e) { //for non integer input
+                        System.out.println("    [ERR] Invalid input! Please enter a valid quantity.\n");
+                    }
+                } while (!isValidQuantity); //less than 0
+
+                removeQuantity(itemName, quantity);
+                break;
+            default:
+                System.out.println("\n    [ERR] Invalid choice.");
+        }
+    }
+
+    // Method to remove all quantities of an item from the inventory
+    private void removeAllQuantities(String itemName) {
+        int itemIndex = findItemIndex(itemName);
+        if (itemIndex == -1) { //index count is not incremented
+            System.out.println("\n\t[ERR] There is no " + itemName + " in the inventory.");
+        } else {//if there is an item in the inventory
+            // Shift elements to remove item
+            for (int i = itemIndex; i < itemCount - 1; i++) {//array index switch
+                items[i] = items[i + 1]; //increment array
+                itemQuantities[i] = itemQuantities[i + 1]; //increment array quanttites
+            }
+            items[itemCount - 1] = null; //remove the item count
+            itemQuantities[itemCount - 1] = 0; //remove item quantites
+            itemCount--;
+            System.out.println("\n\tAll quantities of item " + itemName + " are removed from the inventory.");
+        }
+    }
+
+    // Method to remove a specific quantity of an item from the inventory
+    private void removeQuantity(String itemName, int quantity) {
+        int itemIndex = findItemIndex(itemName);
+        if (itemIndex == -1) { //no item that match in the inventory
+            System.out.print("\n\t[ERR] There is no " + itemName + " in the inventory.\n");
+        } else {
+            int currentQuantity = itemQuantities[itemIndex]; //matching quantity to the quantity of the item
+            if (quantity <= 0) { //item is 0 or less than
+                System.out.println("[ERR] Invalid input. Quantity must be greater than zero.\n");
+            } else if (quantity > currentQuantity) { //greter than the current quantity
+                System.out.println("\n\t[ERR] The item " + itemName + " only has " + currentQuantity + " in the inventory, cannot remove " + quantity + ".");
+            } else { //withtin the range of quantity
+                itemQuantities[itemIndex] -= quantity; //subtraction of quantity
+                System.out.println("\n\t" + quantity + " " + itemName + "(s) successfully removed from the inventory.");
+            }
+        }
+    }
+
+    // Method to find the index of an item in the inventory
+    private int findItemIndex(String itemName) {
+        for (int i = 0; i < itemCount; i++) {
+            if (items[i].equalsIgnoreCase(itemName)) {//getting the index that matches the name while ignoring the case
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // Getter for the number of items in the inventory
+    public int getItemCount() {
+        return itemCount;
+    }
+
+    // Getter for the array of item names
+    public String[] getItemNames() {
+        return items;
+    }
+
+    // Getter for the array of item quantities
+    public int[] getItemQuantities() {
+        return itemQuantities;
+    }
+}
+
+// Class representing the inventory management system
+class InventoryManagement {
+    private final Inventory inventory; // Instance of the Inventory class
+    private final Scanner scanner; // Scanner for user input
+
+    // Constructor to initialize the inventory and scanner
+    public InventoryManagement() {
+        inventory = new Inventory();
+        scanner = new Scanner(System.in);
+    }
+
+    // Method to start the inventory management system
+    public void start() {
+        int choice = 0;
+        boolean isValidChoice;
+
+        do {//menu
+            System.out.print("\n   -------------------\u001b[31m ❤ \u001b[0m---------------------");
+            System.out.println("\n\t  Group 8 Inventory Management System \n");
+            System.out.print(" 1. Add an item");
+            System.out.println("\t\t\t\t\t 2. Remove an item");
+            System.out.print("3. Check for item quantity");
+            System.out.println("\t\t 4.0m Exit");
+            System.out.print("\n\tEnter your choice: ");
+
+            String input = scanner.nextLine();
+            isValidChoice = true;
+
+            try {
+                choice = Integer.parseInt(input);
+
+                switch (choice) {
+                    case 1:
+                        addItem(); //function
+                        break;
+                    case 2:
+                        inventory.removeItem(scanner); //remove
+                        break;
+                    case 3:
+                        checkItemQuantity(); //function
+                        break;
+                    case 4: //exit
+                        System.out.println("\n Thank you for using our Inventory Management System \u001b[31m ❤ \u001b[0m");
+                        System.out.println("\n Group Members:");
+                        System.out.println(" Del Rosario, Daniel");
+                        System.out.println(" Dolorosa,Shaina Mae");
+                        System.out.println(" Fababeir,Renz Paul");
+                        break;
+                    default: //not 1-4 integer
+                        System.out.println("\n    [ERR]Invalid choice! Choose again.");
+                        isValidChoice = false;
+                }
+            } catch (NumberFormatException e) { //not integer
+                System.out.println("\n    [ERR]Invalid input! Please enter a valid choice.");
+                isValidChoice = false;
+            }
+        } while (!isValidChoice || choice != 4);//condition
+    }
+
+    // Method to add an item to the inventory
+    private void addItem() {
+        System.out.print("\n\tEnter item name: "); //user input name
+        String itemName = scanner.nextLine();
+
+        int quantity = 0;
+        boolean isValidQuantity = false;
+        do {
+            System.out.print("\tEnter item quantity: "); //user input quantity
+            String input = scanner.nextLine();
+
+            try {
+                quantity = Integer.parseInt(input); //must be integer
+                isValidQuantity = true;
+
+                if (quantity <= 0) { //item does not have quantity
+                    System.out.println("    [ERR] Invalid input. Quantity cannot be less than 1\n");
+                    isValidQuantity = false;
+                }
+            } catch (NumberFormatException e) { //characters
+                System.out.println("    [ERR] Invalid input. Please enter a valid quantity.\n");
+            }
+        } while (!isValidQuantity);
+
+        inventory.addItem(itemName, quantity); //function in inventory add item
+    }
+
+    // Method to check the quantity of items in the inventory
+    private void checkItemQuantity() {
+        if (inventory.getItemCount() == 0) {//check how many item are there in the inventory
+            System.out.println("\n\tCurrently, there are no items in the inventory!");
+            return;
+        }
+
+        System.out.println("\n\t\t\t\t\tInventory");
+        System.out.println("\t\t   Item Name\t\t Quantity ");
+        System.out.println("\t\t  ----------------------------");
+        String[] itemNames = inventory.getItemNames(); //display item names
+        int[] itemQuantities = inventory.getItemQuantities(); //display uantities
+
+        for (int i = 0; i < inventory.getItemCount(); i++) { //item counter
+            System.out.printf("\t\t   %-19s  %d\n", itemNames[i], itemQuantities[i]);
+        }
+    }
+}
+
+// Main class for running the program
+public class CS1AnD {
+    public static void main(String[] args) {
+        InventoryManagement inventoryManagement = new InventoryManagement();
+        inventoryManagement.start();
+    }
+}
